@@ -5,7 +5,9 @@
   ],
   "routes": [
     { "src": "/api/generate-report", "dest": "/api/generate-report.js" },
-    { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))", "dest": "/src/$1" },
+    { "src": "/style.css", "dest": "/src/style.css" },
+    { "src": "/app.js", "dest": "/src/app.js" },
+    { "src": "/assess.js", "dest": "/src/assess.js" },
     { "src": "/(.*)", "dest": "/src/index.html" }
   ]
 }

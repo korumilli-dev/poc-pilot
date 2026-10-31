@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feasibility — Turn your idea into a confident next step.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <a href="#idea-form" class="skip-link">Skip to idea form</a>
+
+  <!-- Shared header (both screens) -->
+  <header class="header">
+    <div class="page header-inner">
+      <a href="#" class="brand" aria-label="Feasibility home">
+        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="24" height="24" rx="6" fill="#111B3C"/>
+          <path d="M8 8 L8 12 L12 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="10.5" cy="10.5" r="1.5" fill="white"/>
+        </svg>
+        <span class="brand-wordmark">PocPilot</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#" class="nav-link">How it works</a>
+        <a href="#" class="nav-link">Examples</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#" class="nav-link">Sign in</a>
+        <button class="btn btn-primary-nav btn-primary">Assess an idea</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- ===== SCREEN 1: Idea submission ===== -->
+    <section class="section" id="input-section">
+      <div class="hero">
+        <div class="hero-inner container-wide">
+          <div class="hero-content">
+            <p class="eyebrow">IDEA VALIDATION WORKSPACE</p>
+            <h1>Turn your idea into a <span class="accent">confident next step.</span></h1>
+            <p class="hero-sub">Evaluate demand, delivery, cost and risk before you commit.</p>
+          </div>
+
+          <div class="submission-panel">
+            <h2 class="submission-heading">What are you thinking of building?</h2>
+            <p class="submission-desc">Describe the problem, who it serves, and the outcome you want. We’ll assess feasibility across four dimensions.</p>
+
+            <form id="idea-form" novalidate>
+              <div class="form-group">
+                <label for="idea">Your idea</label>
+                <textarea
+                  id="idea"
+                  name="idea"
+                  rows="5"
+                  required
+                  aria-required="true"
+                  aria-describedby="idea-hint idea-error"
+                  placeholder="e.g. A neighborhood platform where residents can borrow and lend tools such as drills, ladders, and lawnmowers."></textarea>
+                <div class="form-hint" id="idea-hint">Be specific about the problem, users, and desired outcome.</div>
+                <p class="form-error" id="idea-error" role="alert" hidden>Please describe your idea before assessing.</p>
+              </div>
+              <button type="submit" class="btn btn-primary" id="submit-btn">
+                <span class="btn-label">Assess feasibility</span>
+                <span class="btn-arrow">→</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Validation stages illustration -->
+          <div class="validation-stages" aria-hidden="true">
+            <svg viewBox="0 0 640 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="stageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#3730D8"/>
+                  <stop offset="100%" stop-color="#7650E8"/>
+                </linearGradient>
+              </defs>
+              <!-- Connector line -->
+              <path d="M60 90 L580 90" stroke="#E5E4DA" stroke-width="2"/>
+              <!-- Node 1: Idea -->
+              <circle cx="60" cy="90" r="14" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+              <circle cx="60" cy="90" r="14" fill="none" stroke="url(#stageGrad)" stroke-width="2.5" stroke-dasharray="4 4"/>
+              <text x="60" y="94" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#111B3C" text-anchor="middle">Idea</text>
+              <!-- Node 2: Assess -->
+              <circle cx="220" cy="90" r="14" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+              <path d="M206 76 L220 90 L234 76 M206 104 L220 90 L234 104" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="220" y="94" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#111B3C" text-anchor="middle">Assess</text>
+              <!-- Node 3: Decide -->
+              <circle cx="380" cy="90" r="14" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+              <path d="M366 76 L380 90 L374 83" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="380" y="94" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#111B3C" text-anchor="middle">Decide</text>
+              <!-- Node 4: Proceed -->
+              <circle cx="540" cy="90" r="14" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+              <path d="M526 76 L540 90 L526 104" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="540" y="94" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#111B3C" text-anchor="middle">Proceed</text>
+            </svg>
+          </div>
+
+          <div class="benefits">
+            <div class="benefit-card">
+              <div class="benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 2 C5 2 2 5 2 10 C2 15 5 18 10 18 C15 18 18 15 18 10 C18 5 15 2 10 2 Z" stroke="#3730D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6 10 L8 12 L14 6" stroke="#3730D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h4>Demand &amp; fit</h4>
+              <p>Understand customer need and problem–solution fit before you build.</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10 H18" stroke="#7650E8" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M10 2 V18" stroke="#7650E8" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="6" cy="6" r="1" fill="#7650E8"/>
+                  <circle cx="14" cy="14" r="1" fill="#7650E8"/>
+                  <circle cx="6" cy="14" r="1" fill="#7650E8"/>
+                  <circle cx="14" cy="6" r="1" fill="#7650E8"/>
+                </svg>
+              </div>
+              <h4>Technical readiness</h4>
+              <p>Assess complexity, integration needs, and implementation approach.</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 5 L15 5 L10 15 Z" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10 5 V9" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M8 8 L12 8" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h4>Cost &amp; risk</h4>
+              <p>Compare build versus buy and surface the risks worth managing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN 2: Feasibility results ===== -->
+    <section class="section results-section hidden" id="results-section" aria-live="polite">
+      <div class="container-wide">
+        <div class="results-header">
+          <button class="btn-back" id="back-btn">
+            <span>←</span> Back
+          </button>
+          <h2 class="results-headline" id="results-heading">Feasibility assessment</h2>
+          <div class="results-meta">
+            <span class="meta-label">Overall score</span>
+            <span class="meta-score" id="overall-score">--</span>
+          </div>
+        </div>
+
+        <div class="assessment-idea">
+          <p class="assessment-idea-text" id="assessment-idea"></p>
+        </div>
+
+        <div class="score-grid" id="score-grid">
+          <!-- scores injected by JS -->
+        </div>
+
+        <div class="verdict" id="verdict-box">
+          <!-- verdict injected by JS -->
+        </div>
+
+        <div class="comparison-section">
+          <h3 class="section-title">Build versus buy</h3>
+          <table class="compare-table" id="compare-table">
+            <thead>
+              <tr>
+                <th class="col-option">Option</th>
+                <th class="col-pros">Pros</th>
+                <th class="col-cons">Cons</th>
+                <th class="col-effort">Effort (MVP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="section-title">Risks &amp; assumptions</h3>
+        <ul class="risk-list" id="risk-list">
+          <!-- items injected by JS -->
+        </ul>
+
+        <div class="evidence-note">
+          <span class="evidence-icon" aria-hidden="true">●</span>
+          <span>Assessment is template-based and deterministic (no paid API calls). Results are a starting point for discussion, not a production-grade evaluation.</span>
+        </div>
+
+        <!-- LLM Report loading skeleton -->
+        <div class="report-loading" id="report-loading" hidden>
+          <div class="report-skeleton"></div>
+          <div class="report-skeleton"></div>
+          <div class="report-skeleton"></div>
+          <div class="report-skeleton"></div>
+          <div class="report-skeleton"></div>
+          <p>Generating detailed feasibility report with AI…</p>
+        </div>
+
+        <!-- LLM Report error state -->
+        <div class="report-error" id="report-error" hidden>
+          <p><strong>Detailed report unavailable.</strong> Showing deterministic assessment only. Configure an LLM API key on the server to enable AI-generated architecture, implementation plan, cost, and infrastructure analysis.</p>
+        </div>
+
+        <!-- LLM Report sections (populated asynchronously) -->
+        <section class="llm-report" id="llm-report" hidden>
+          <h3 class="section-title">AI Feasibility Report</h3>
+
+          <div class="report-section">
+            <h4>Feasibility Summary</h4>
+            <p id="report-feasibility"></p>
+          </div>
+
+          <div class="report-section">
+            <h4>Recommended Architecture</h4>
+            <div id="report-architecture"></div>
+          </div>
+
+          <div class="report-section">
+            <h4>Implementation Plan</h4>
+            <div id="report-implementation"></div>
+          </div>
+
+          <div class="report-section">
+            <h4>Cost Estimate</h4>
+            <div id="report-cost"></div>
+          </div>
+
+          <div class="report-section">
+            <h4>Infrastructure</h4>
+            <div id="report-infrastructure"></div>
+          </div>
+
+          <div class="report-section">
+            <h4>Risks &amp; Next Steps</h4>
+            <div id="report-risks-nextsteps"></div>
+          </div>
+        </section>
+
+        <div class="results-actions" style="margin-top: var(--space-4); display: flex; gap: var(--space-2); justify-content: flex-start;">
+          <button type="button" class="btn btn-outline" id="reset-btn">
+            Assess another idea
+          </button>
+          <a href="#" class="btn-link" id="view-idea-link">View submitted idea</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,13 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/generate-report.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/generate-report", "dest": "/api/generate-report.js" },
-    { "src": "/style.css", "dest": "/src/style.css" },
-    { "src": "/app.js", "dest": "/src/app.js" },
-    { "src": "/assess.js", "dest": "/src/assess.js" },
-    { "src": "/(.*)", "dest": "/src/index.html" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/generate-report.js" }
   ]
 }

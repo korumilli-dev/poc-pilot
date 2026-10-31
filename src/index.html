@@ -206,11 +206,33 @@
 
       <!-- LLM Report error state -->
       <div class="report-error" id="report-error" hidden>
-        <p><strong>Detailed report unavailable.</strong> Showing deterministic assessment only. Configure an LLM API key on the server to enable AI-generated architecture, implementation plan, cost, and infrastructure analysis.</p>
+        <div class="report-error-content">
+          <p><strong id="report-error-title">Detailed report unavailable.</strong> <span id="report-error-message">Showing deterministic assessment only. Configure an LLM API key on the server to enable AI-generated architecture, implementation plan, cost, and infrastructure analysis.</span></p>
+          <button type="button" class="btn btn-outline" id="report-retry-btn" style="margin-top:var(--space-2);">Try again</button>
+        </div>
       </div>
 
       <!-- LLM Report sections (populated asynchronously) -->
       <div class="llm-report" id="llm-report" hidden>
+
+        <!-- Feasibility summary (LLM narrative) -->
+        <div class="report-section" id="report-feasibility-section" hidden>
+          <div class="report-section-header">
+            <div class="report-section-icon indigo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="report-section-title">AI Feasibility Assessment</h3>
+              <span class="report-section-subtitle">LLM-powered analysis</span>
+            </div>
+          </div>
+          <div class="report-section-body" id="report-feasibility">
+            <!-- feasibility summary injected by JS -->
+          </div>
+        </div>
 
         <div class="report-section" id="report-architecture-section" hidden>
           <div class="report-section-header">

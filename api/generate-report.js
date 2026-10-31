@@ -29,6 +29,83 @@ function corsHeaders() {
   };
 }
 
+/**
+ * Validate that the LLM response matches the expected schema.
+ * Returns the sanitized report or null if validation fails.
+ */
+function validateReport(report) {
+  if (!report || typeof report !== 'object') return null;
+
+  const requiredStringFields = ['feasibilitySummary'];
+  for (const field of requiredStringFields) {
+    if (typeof report[field] !== 'string' || report[field].trim().length === 0) {
+      return null;
+    }
+  }
+
+  // Architecture
+  if (report.architecture && typeof report.architecture === 'object') {
+    if (typeof report.architecture.overview !== 'string') report.architecture.overview = '';
+    if (!Array.isArray(report.architecture.components)) report.architecture.components = [];
+    if (!Array.isArray(report.architecture.techStack)) report.architecture.techStack = [];
+  } else {
+    report.architecture = { overview: '', components: [], techStack: [] };
+  }
+
+  // Implementation plan
+  if (report.implementationPlan && typeof report.implementationPlan === 'object') {
+    if (!Array.isArray(report.implementationPlan.phases)) report.implementationPlan.phases = [];
+    if (typeof report.implementationPlan.totalTimeline !== 'string') report.implementationPlan.totalTimeline = 'TBD';
+  } else {
+    report.implementationPlan = { phases: [], totalTimeline: 'TBD' };
+  }
+
+  // Cost estimate
+  if (report.costEstimate && typeof report.costEstimate === 'object') {
+    const dev = report.costEstimate.development || {};
+    const ops = report.costEstimate.monthlyOperating || {};
+    report.costEstimate = {
+      development: {
+        low: typeof dev.low === 'number' ? dev.low : 0,
+        high: typeof dev.high === 'number' ? dev.high : 0,
+        currency: typeof dev.currency === 'string' ? dev.currency : 'USD',
+      },
+      monthlyOperating: {
+        low: typeof ops.low === 'number' ? ops.low : 0,
+        high: typeof ops.high === 'number' ? ops.high : 0,
+        currency: typeof ops.currency === 'string' ? ops.currency : 'USD',
+      },
+      assumptions: typeof report.costEstimate.assumptions === 'string' ? report.costEstimate.assumptions : 'Costs scale with usage.',
+    };
+  } else {
+    report.costEstimate = {
+      development: { low: 0, high: 0, currency: 'USD' },
+      monthlyOperating: { low: 0, high: 0, currency: 'USD' },
+      assumptions: 'Costs scale with usage; validate demand before committing to paid tiers.',
+    };
+  }
+
+  // Infrastructure
+  if (report.infrastructure && typeof report.infrastructure === 'object') {
+    if (typeof report.infrastructure.hosting !== 'string') report.infrastructure.hosting = 'Static hosting';
+    if (!Array.isArray(report.infrastructure.services)) report.infrastructure.services = [];
+    if (!Array.isArray(report.infrastructure.security)) report.infrastructure.security = [];
+    if (typeof report.infrastructure.scalability !== 'string') report.infrastructure.scalability = 'Unlimited';
+  } else {
+    report.infrastructure = { hosting: 'Static hosting', services: [], security: [], scalability: 'Unlimited' };
+  }
+
+  // Risks
+  if (!Array.isArray(report.risks)) report.risks = [];
+  report.risks = report.risks.filter(r => typeof r === 'string').slice(0, 6);
+
+  // Next steps
+  if (!Array.isArray(report.nextSteps)) report.nextSteps = [];
+  report.nextSteps = report.nextSteps.filter(s => typeof s === 'string').slice(0, 6);
+
+  return report;
+}
+
 function deterministicReport(idea, scores, overall) {
   const verdict =
     overall >= 75
@@ -40,7 +117,7 @@ function deterministicReport(idea, scores, overall) {
       : 'Stop';
 
   return {
-    feasibilitySummary: `This idea received an overall deterministic score of ${overall}/100. Based on keyword-signal analysis across problem–solution fit, technical feasibility, operational feasibility, and financial viability, the recommendation is to ${verdict.toLowerCase()}. For a detailed AI-generated architecture, implementation plan, and cost estimate, configure an LLM API key and redeploy.`,
+    feasibilitySummary: `This idea received an overall deterministic score of ${overall}/100. Based on keyword-signal analysis across problem–solution fit, technical feasibility, operational feasibility, and financial viability, the recommendation is to ${verdict.toLowerCase()}. Configure an LLM API key for a detailed AI-generated architecture, implementation plan, and cost estimate.`,
     architecture: {
       overview: 'Deterministic fallback — LLM not configured.',
       components: ['Frontend (HTML/CSS/JS)', 'Assessment engine (assess.js)'],
@@ -110,16 +187,10 @@ Return this exact JSON schema:
   "nextSteps": ["next step 1", "next step 2", "next step 3"]
 }
 
-Be realistic, specific to the idea, and do not fabricate certainty.`;
+Be realistic, specific to the idea, and do not fabricate certainty. Avoid inventing market size figures, pricing, or timelines that cannot be inferred from the idea itself. Use qualifiers like "estimated," "typically," or "depends on scope" where appropriate.`;
 
 function buildSystemPrompt(idea, scores, overall) {
   return SYSTEM_PROMPT
-    /*.replace(/\$\{IDEA\}/g, idea)
-    .replace(/\$\{PROBLEM_SOLUTION\}/g, scores.problemSolution)
-    .replace(/\$\{TECHNICAL\}/g, scores.technical)
-    .replace(/\$\{OPERATIONAL\}/g, scores.operational)
-    .replace(/\$\{FINANCIAL\}/g, scores.financial)
-    .replace(/\$\{OVERALL\}/g, overall)*/
     .replace('${{IDEA}}', idea)
     .replace('${{PROBLEM_SOLUTION}}', scores.problemSolution)
     .replace('${{TECHNICAL}}', scores.technical)
@@ -172,7 +243,8 @@ async function callOpenRouter(idea, scores, overall) {
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || '';
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return validateReport(parsed);
   } finally {
     clearTimeout(timeoutId);
   }
@@ -181,63 +253,85 @@ async function callOpenRouter(idea, scores, overall) {
 async function callAnthropic(idea, scores, overall, apiKey) {
   const systemPrompt = buildSystemPrompt(idea, scores, overall);
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 2000,
-      temperature: 0.4,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: 'Generate the feasibility report JSON.' }],
-    }),
-  });
+  // 10-second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    throw new Error(`Anthropic API error: ${response.status}`);
-  }
+  try {
+    const response = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 2000,
+        temperature: 0.4,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: 'Generate the feasibility report JSON.' }],
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
-  const data = await response.json();
-  const text = data.content?.[0]?.text || '';
-  const jsonStart = text.indexOf('{');
-  const jsonEnd = text.lastIndexOf('}') + 1;
-  if (jsonStart === -1 || jsonEnd === 0) {
-    throw new Error('No JSON found in Anthropic response');
+    if (!response.ok) {
+      throw new Error(`Anthropic API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}') + 1;
+    if (jsonStart === -1 || jsonEnd === 0) {
+      throw new Error('No JSON found in Anthropic response');
+    }
+    const parsed = JSON.parse(text.slice(jsonStart, jsonEnd));
+    return validateReport(parsed);
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return JSON.parse(text.slice(jsonStart, jsonEnd));
 }
 
 async function callOpenAI(idea, scores, overall, apiKey) {
   const systemPrompt = buildSystemPrompt(idea, scores, overall);
 
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      temperature: 0.4,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: 'Generate the feasibility report JSON.' },
-      ],
-    }),
-  });
+  // 10-second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+  try {
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: 'Generate the feasibility report JSON.' },
+        ],
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    const parsed = JSON.parse(text);
+    return validateReport(parsed);
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || '';
-  return JSON.parse(text);
 }
 
 export default async (req, res) => {
@@ -287,9 +381,15 @@ export default async (req, res) => {
     } else if (openaiKey) {
       report = await callOpenAI(idea, scores, overall, openaiKey);
     }
+
+    // Validate the LLM response; fall back to deterministic if invalid
+    if (!report) {
+      throw new Error('LLM response failed validation');
+    }
+
     res.status(200).json(report);
   } catch (err) {
-    // LLM failed — return deterministic fallback so UI never breaks
+    // LLM failed or returned invalid data — return deterministic fallback so UI never breaks
     res.status(200).json(deterministicReport(idea, scores, overall));
   }
 };

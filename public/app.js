@@ -24,6 +24,9 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   const overallScoreEl = document.getElementById('overall-score');
   const assessmentIdeaEl = document.getElementById('assessment-idea');
 
+  // Last assessment data — used by the report retry button
+  let lastAssessment = null;
+
   // LLM report elements
   const reportLoading = document.getElementById('report-loading');
   const reportError = document.getElementById('report-error');
@@ -40,6 +43,8 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   const reportRisksBody = document.getElementById('report-risks');
   const reportNextStepsSection = document.getElementById('report-nextsteps-section');
   const reportNextStepsBody = document.getElementById('report-nextsteps');
+  const reportFeasibilitySection = document.getElementById('report-feasibility-section');
+  const reportFeasibilityBody = document.getElementById('report-feasibility');
   const scheduleKickoff = document.getElementById('schedule-kickoff');
 
   // ------------------------------------------------------------------
@@ -252,7 +257,7 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     const secEl = document.getElementById('llm-report');
     if (secEl) secEl.hidden = true;
     // Hide all individual report sections until populated
-    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection].forEach((s) => {
+    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection, reportFeasibilitySection].forEach((s) => {
       if (s) s.hidden = true;
     });
   }
@@ -262,10 +267,14 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     if (el) el.hidden = true;
   }
 
-  function showReportError() {
+  function showReportError(message) {
     hideReportLoading();
     const errEl = document.getElementById('report-error');
-    if (errEl) errEl.hidden = false;
+    if (errEl) {
+      errEl.hidden = false;
+      const p = errEl.querySelector('p');
+      if (p && message) p.textContent = message;
+    }
     const secEl = document.getElementById('llm-report');
     if (secEl) secEl.hidden = true;
   }
@@ -278,9 +287,18 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     llmReport.hidden = false;
 
     // Show all section wrappers so they can be revealed as content is injected
-    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection].forEach((s) => {
+    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection, reportFeasibilitySection].forEach((s) => {
       if (s) s.hidden = false;
     });
+
+    // ------------------------------------------------------------------
+    // Feasibility summary — LLM narrative assessment
+    // ------------------------------------------------------------------
+    if (reportFeasibilityBody && report.feasibilitySummary) {
+      reportFeasibilityBody.innerHTML = `
+        <p class="report-feasibility-summary">${escapeHtml(report.feasibilitySummary)}</p>
+      `;
+    }
 
     // ------------------------------------------------------------------
     // Architecture — layered component cards (architecture-layers CSS)
@@ -449,22 +467,38 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     }
   }
 
+  // Client-side timeout so the loading state always terminates
+  const REPORT_TIMEOUT_MS = 30000;
+
   async function fetchLLMReport(idea, scores, overall) {
     showReportLoading();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REPORT_TIMEOUT_MS);
+
     try {
       const response = await fetch('/api/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idea, scores, overall }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         throw new Error(`Server responded ${response.status}`);
       }
       const report = await response.json();
       renderReport(report);
     } catch (err) {
-      // Network error (e.g., running file:// without a server) or server error
-      showReportError();
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        showReportError('The report is taking longer than expected. Please try again.');
+      } else {
+        showReportError(err.message);
+      }
+    } finally {
+      // Safety net: ensure loading state always terminates
+      hideReportLoading();
     }
   }
 
@@ -489,6 +523,9 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
       try {
         const { scores, overall } = assess(idea);
         const risks = generateRisks(scores);
+
+        // Store for report retry
+        lastAssessment = { idea, scores, overall };
 
         renderOverallScore(overall);
         renderAssessmentIdea(idea);
@@ -567,6 +604,25 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
       ideaInput.removeAttribute('aria-invalid');
       ideaInput.focus();
       scrollToSection(inputSection);
+    });
+  }
+
+  // Report retry button — re-fetch LLM report with last assessment data
+  const reportRetryBtn = document.getElementById('report-retry-btn');
+  if (reportRetryBtn) {
+    reportRetryBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!lastAssessment) return;
+      const { idea, scores, overall } = lastAssessment;
+      const errEl = document.getElementById('report-error');
+      if (errEl) errEl.hidden = true;
+      const secEl = document.getElementById('llm-report');
+      if (secEl) secEl.hidden = true;
+      // Hide all individual report sections
+      [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection, reportFeasibilitySection].forEach((s) => {
+        if (s) s.hidden = true;
+      });
+      fetchLLMReport(idea, scores, overall);
     });
   }
 

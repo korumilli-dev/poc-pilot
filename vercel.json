@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/generate-report.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/generate-report", "dest": "/api/generate-report.js" },
+    { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))", "dest": "/src/$1" },
+    { "src": "/(.*)", "dest": "/src/index.html" }
+  ]
+}

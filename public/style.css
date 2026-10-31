@@ -7,13 +7,15 @@
    violet (#7650E8), restrained amber (#D97706 / #B45309).
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Public+Sans:wght@500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
   /* === Brand palette === */
   --color-bg: #F8F7F2;              /* warm ivory page background */
   --color-surface-container: #FAF9F5; /* slightly warmer container bg */
   --color-ink: #111B3C;             /* deep navy primary text */
+  --color-navy-dark: #111B3C;       /* deep navy primary text */
+  --color-navy-muted: #3A4668;      /* navy muted text */
   --color-ink-soft: #5B6479;        /* secondary text */
   --color-muted: #8C93A4;           /* captions, auxiliary text */
   --color-navy-light: #616E92;      /* lighter navy for metadata */
@@ -33,13 +35,16 @@
 
   /* Surfaces */
   --color-surface: #FFFFFF;         /* white cards */
+  --color-surface-card: #FFFFFF;    /* score card surface */
   --color-border: #E5E4DA;          /* subtle structural borders */
+  --color-border-subtle: #E5E4DA;   /* subtle card borders */
   --color-border-soft: #F3F2EA;     /* very subtle dividers */
 
   /* Shadows */
   --color-shadow: 0 4px 20px -2px rgba(17, 27, 60, 0.05),
                   0 2px 6px -1px rgba(17, 27, 60, 0.03);
   --color-shadow-sm: 0 4px 12px rgba(17, 27, 60, 0.04);
+  --color-shadow-card: 0 4px 12px rgba(17, 27, 60, 0.04);
   --color-shadow-card-hover: 0 10px 25px -4px rgba(17, 27, 60, 0.08),
                   0 4px 10px -2px rgba(17, 27, 60, 0.04);
   --color-ring: #3730D8;            /* focus ring */
@@ -59,6 +64,8 @@
   --font-body: Inter, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-headline: "Playfair Display", Georgia, serif;
+  --font-display: "Public Sans", Inter, sans-serif;
+  --font-label: "Public Sans", Inter, sans-serif;
 
   --scale-eyebrow: 0.75rem;
   --scale-body: 1rem;
@@ -77,6 +84,7 @@
   --container-max: 1440px;
   --content-width: 720px;
   --radius: 8px;
+  --radius-lg: 0.5rem;
   --radius-sm: 6px;
 
   /* === Spacing — consistent 4px-based scale === */
@@ -885,27 +893,30 @@ textarea[aria-disabled="true"] {
 .score-card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--color-shadow-sm);
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-card);
   transition: all var(--transition-fast);
 }
 
 .score-card:hover {
-  border-color: var(--color-primary-light);
+  border-color: var(--color-brand-indigo);
+  box-shadow: var(--color-shadow-card-hover);
 }
 
 .score-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
 
 .score-dimension {
-  font-size: 0.75rem;
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -913,55 +924,59 @@ textarea[aria-disabled="true"] {
 }
 
 .score-tier {
+  font-family: var(--font-label);
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.125rem 0.5rem;
-  border-radius: 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .score-tier.tier-a {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: var(--color-brand-indigo-light);
+  color: var(--color-brand-indigo);
 }
 
 .score-tier.tier-b-plus {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: var(--color-brand-indigo-light);
+  color: var(--color-brand-indigo);
 }
 
 .score-tier.tier-b {
-  background: var(--color-secondary-light);
-  color: var(--color-secondary);
+  background: var(--color-brand-violet-light);
+  color: var(--color-brand-violet);
 }
 
 .score-tier.tier-c {
-  background: var(--color-amber-soft);
-  color: var(--color-amber-dark);
+  background: var(--color-accent-amber-bg);
+  color: var(--color-accent-amber);
 }
 
 .score-value {
-  font-family: var(--font-headline);
-  font-size: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
+  color: var(--color-navy-dark);
   line-height: 1.1;
 }
 
 .score-label {
+  font-family: var(--font-body);
   font-size: var(--scale-small);
   font-weight: 500;
-  color: var(--color-muted);
+  color: var(--color-navy-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .score-meter {
   width: 100%;
-  height: 1.5px;
-  background: var(--color-border-soft);
+  height: 6px;
+  background: var(--color-border-subtle);
   border-radius: 9999px;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   overflow: hidden;
 }
 
@@ -972,24 +987,32 @@ textarea[aria-disabled="true"] {
 }
 
 .score-meter-fill.indigo {
-  background: var(--color-primary);
+  background: var(--color-brand-indigo);
 }
 
 .score-meter-fill.violet {
-  background: var(--color-secondary);
+  background: var(--color-brand-violet);
 }
 
 .score-meter-fill.amber {
-  background: var(--color-amber);
+  background: var(--color-accent-amber);
 }
 
 .score-context {
+  font-family: var(--font-body);
   font-size: 0.75rem;
-  color: var(--color-ink-soft);
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--color-border-soft);
-  padding-top: 0.5rem;
+  color: var(--color-navy-muted);
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 0.75rem;
   line-height: var(--line-body);
+}
+
+/* Material Symbols Outlined icon styling */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  line-height: 1;
 }
 
 /* ===== Verdict / decision panel ===== */

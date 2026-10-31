@@ -594,6 +594,19 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     scrollToSection(inputSection);
   });
 
+  const assessAnotherBtn = document.getElementById('assess-another-btn');
+  if (assessAnotherBtn) {
+    assessAnotherBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      resultsSection.classList.add('hidden');
+      inputSection.classList.remove('hidden');
+      ideaError.hidden = true;
+      ideaInput.removeAttribute('aria-invalid');
+      ideaInput.focus();
+      scrollToSection(inputSection);
+    });
+  }
+
   const viewIdeaLink = document.getElementById('view-idea-link');
   if (viewIdeaLink) {
     viewIdeaLink.addEventListener('click', (e) => {

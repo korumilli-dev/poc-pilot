@@ -1,0 +1,10 @@
+{
+  "name": "poc-pilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smallest useful end-to-end idea feasibility POC",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/feasibility.test.js"
+  }
+}

@@ -14,7 +14,6 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   const submitBtn = document.getElementById('submit-btn');
   const resetBtn = document.getElementById('reset-btn');
   const backBtn = document.getElementById('back-btn');
-  const assessAnotherBtn = document.getElementById('assess-another-btn');
   const scoreGrid = document.getElementById('score-grid');
   const verdictBox = document.getElementById('verdict-box');
   const compareBody = document.getElementById('compare-table').querySelector('tbody');
@@ -557,19 +556,6 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     ideaInput.focus();
     scrollToSection(inputSection);
   });
-
-  // Header "Assess an idea" button — return to input screen
-  if (assessAnotherBtn) {
-    assessAnotherBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      resultsSection.classList.add('hidden');
-      inputSection.classList.remove('hidden');
-      ideaError.hidden = true;
-      ideaInput.removeAttribute('aria-invalid');
-      ideaInput.focus();
-      scrollToSection(inputSection);
-    });
-  }
 
   const viewIdeaLink = document.getElementById('view-idea-link');
   if (viewIdeaLink) {

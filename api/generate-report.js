@@ -6,7 +6,7 @@
  * Environment variables required (set in your hosting dashboard or .env for local dev):
  *   OPENROUTER_API_KEY  — OpenRouter API key (preferred)
  *   LLM_BASE_URL        — OpenRouter base URL (default: https://openrouter.ai/api/v1)
- *   LLM_MODEL           — Model to use (default: deepseek/deepseek-v4.1-flash)
+ *   LLM_MODEL           — Model to use (default: nvidia/nemotron-3-ultra-550b-a55b:free)
  *   ANTHROPIC_API_KEY   — Anthropic Claude API key (fallback)
  *   OPENAI_API_KEY      — OpenAI API key (fallback)
  *
@@ -131,7 +131,7 @@ function buildSystemPrompt(idea, scores, overall) {
 async function callOpenRouter(idea, scores, overall) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const baseUrl = process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1';
-  const model = process.env.LLM_MODEL || 'deepseek/deepseek-v4.1-flash';
+  const model = process.env.LLM_MODEL || 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
   if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY not configured');

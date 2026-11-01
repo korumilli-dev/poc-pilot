@@ -587,35 +587,50 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     submitBtn.classList.add('btn-loading');
 
     setTimeout(() => {
-      const { scores, overall } = assess(idea);
-      const risks = generateRisks(scores);
+      try {
+        const { scores, overall } = assess(idea);
+        const risks = generateRisks(scores);
 
-      // Store for report retry
-      lastAssessment = { idea, scores, overall };
+        // Store for report retry
+        lastAssessment = { idea, scores, overall };
 
-      // Render each section independently — one failure must not block the others
-      try { renderOverallScore(overall); } catch (err) { console.error('renderOverallScore error:', err); }
-      try { renderAssessmentIdea(idea); } catch (err) { console.error('renderAssessmentIdea error:', err); }
-      try { renderScores(scores); } catch (err) { console.error('renderScores error:', err); }
-      try { renderVerdict(overall); } catch (err) { console.error('renderVerdict error:', err); }
-      try { renderBuildBuy(); } catch (err) { console.error('renderBuildBuy error:', err); }
-      try { renderRisks(risks); } catch (err) { console.error('renderRisks error:', err); }
+        // Render each section independently — one failure must not block the others
+        try { renderOverallScore(overall); } catch (err) { console.error('renderOverallScore error:', err); }
+        try { renderAssessmentIdea(idea); } catch (err) { console.error('renderAssessmentIdea error:', err); }
+        try { renderScores(scores); } catch (err) { console.error('renderScores error:', err); }
+        try { renderVerdict(overall); } catch (err) { console.error('renderVerdict error:', err); }
+        try { renderBuildBuy(); } catch (err) { console.error('renderBuildBuy error:', err); }
+        try { renderRisks(risks); } catch (err) { console.error('renderRisks error:', err); }
 
-      inputSection.classList.add('hidden');
-      resultsSection.classList.remove('hidden');
+        inputSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
 
-      // Move focus to the results heading so keyboard and screen-reader
-      // users land in the updated content (focus precedes scroll).
-      resultsHeading.focus({ preventScroll: true });
-      scrollToSection(resultsSection);
+        // Move focus to the results heading so keyboard and screen-reader
+        // users land in the updated content (focus precedes scroll).
+        resultsHeading.focus({ preventScroll: true });
+        scrollToSection(resultsSection);
 
-      submitBtn.disabled = false;
-      submitBtn.querySelector('.btn-label').textContent = 'Assess feasibility';
-      submitBtn.querySelector('.btn-arrow').style.display = 'inline';
-      submitBtn.classList.remove('btn-loading');
+        submitBtn.disabled = false;
+        submitBtn.querySelector('.btn-label').textContent = 'Assess feasibility';
+        submitBtn.querySelector('.btn-arrow').style.display = 'inline';
+        submitBtn.classList.remove('btn-loading');
 
-      // Kick off async LLM report after deterministic results are shown
-      fetchLLMReport(idea, scores, overall);
+        // Kick off async LLM report after deterministic results are shown
+        fetchLLMReport(idea, scores, overall);
+      } catch (err) {
+        console.error('Assessment error:', err);
+        inputSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.querySelector('.btn-label').textContent = 'Assess feasibility';
+        submitBtn.querySelector('.btn-arrow').style.display = 'inline';
+        submitBtn.classList.remove('btn-loading');
+        const errEl = document.getElementById('report-error');
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.querySelector('p').textContent = `Assessment failed: ${err.message}`;
+        }
+      }
     }, 120);
   });
 

@@ -587,9 +587,12 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     submitBtn.classList.add('btn-loading');
 
     setTimeout(() => {
+      console.log('Assessment starting for idea:', idea.substring(0, 50));
       try {
         const { scores, overall } = assess(idea);
+        console.log('Assessment complete:', { scores, overall });
         const risks = generateRisks(scores);
+        console.log('Risks generated:', risks.length, 'items');
 
         // Store for report retry
         lastAssessment = { idea, scores, overall };

@@ -76,8 +76,12 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   // Rendering
   // ------------------------------------------------------------------
   function renderOverallScore(overall) {
-    if (overallScoreEl) {
-      overallScoreEl.textContent = overall;
+    const el = document.getElementById('overall-score');
+    if (el) el.textContent = overall;
+    const ring = document.getElementById('score-gauge-ring');
+    if (ring) {
+      const offset = 263.89 * (1 - overall / 100);
+      ring.style.strokeDashoffset = offset;
     }
   }
 
@@ -87,15 +91,28 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     }
   }
 
+  const DIM_CATEGORIES = {
+    problemSolution: '01 • Market Pull',
+    technical: '02 • Feasibility',
+    operational: '03 • Operations',
+    financial: '04 • Economics',
+  };
+
+  const DIM_LABELS = {
+    problemSolution: 'Problem–Solution Fit',
+    technical: 'Technical Feasibility',
+    operational: 'Operational Feasibility',
+    financial: 'Financial Viability',
+  };
+
   function renderScores(scores) {
     const dims = [
-      { key: 'problemSolution', label: 'Problem–solution fit' },
-      { key: 'technical', label: 'Technical feasibility' },
-      { key: 'operational', label: 'Operational feasibility' },
-      { key: 'financial', label: 'Financial viability' },
+      { key: 'problemSolution', label: DIM_LABELS.problemSolution },
+      { key: 'technical', label: DIM_LABELS.technical },
+      { key: 'operational', label: DIM_LABELS.operational },
+      { key: 'financial', label: DIM_LABELS.financial },
     ];
 
-    // Tier letter grade + meter color per dimension score
     function tierFor(score) {
       if (score >= 80) return { letter: 'A', cls: 'tier-a', meter: 'indigo' };
       if (score >= 65) return { letter: 'B+', cls: 'tier-b-plus', meter: 'indigo' };
@@ -103,7 +120,6 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
       return { letter: 'C', cls: 'tier-c', meter: 'amber' };
     }
 
-    // One-line context per dimension
     function contextFor(key, score) {
       const ctx = {
         problemSolution:
@@ -126,23 +142,34 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
       return ctx[key] || '';
     }
 
-    scoreGrid.innerHTML = dims
+    const scoreGridEl = document.getElementById('score-grid');
+    if (!scoreGridEl) return;
+    scoreGridEl.innerHTML = dims
       .map(
         (d) => {
           const score = scores[d.key];
           const t = tierFor(score);
           return `
         <div class="score-card">
-          <div class="score-card-header">
-            <span class="score-dimension">${escapeHtml(d.label)}</span>
-            <span class="score-tier ${t.cls}">${t.letter}</span>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="score-dimension">${escapeHtml(DIM_CATEGORIES[d.key])}</span>
+              <span class="score-tier ${t.cls}">${t.letter}</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-navy-dark text-base">${escapeHtml(d.label)}</h3>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl font-bold font-display text-navy-dark">${score}</span>
+                <span class="text-xs text-navy-light font-medium">/ 100</span>
+              </div>
+            </div>
+            <div class="w-full bg-surface-canvas h-1.5 rounded-full overflow-hidden">
+              <div class="score-meter-fill ${t.meter}" style="width: ${score}%"></div>
+            </div>
           </div>
-          <span class="score-value">${score}</span>
-          <span class="score-label">${escapeHtml(d.label)}</span>
-          <div class="score-meter">
-            <div class="score-meter-fill ${t.meter}" style="width: ${score}%"></div>
-          </div>
-          <p class="score-context">${escapeHtml(contextFor(d.key, score))}</p>
+          <p class="text-xs text-navy-muted mt-4 leading-relaxed border-t border-border-subtle pt-3">
+            ${escapeHtml(contextFor(d.key, score))}
+          </p>
         </div>
       `;
         }
@@ -183,30 +210,39 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
 
     const actionButtons = (actions[key] || actions['validate-further'])
       .map(
-        (a) => `
-        ${a.kind === 'primary'
-          ? `<button class="btn btn-primary">${escapeHtml(a.label)}</button>`
-          : `<a href="${escapeHtml(a.href)}" class="btn-link">${escapeHtml(a.label)}</a>`
-        }
-      `
+        (a) => a.kind === 'primary'
+          ? `<button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-indigo text-white hover:bg-brand-indigo/90 text-xs font-semibold transition-all shadow-sm">${escapeHtml(a.label)}<span class="material-symbols-outlined text-[16px]">arrow_forward</span></button>`
+          : `<a href="${escapeHtml(a.href)}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-canvas border border-border-subtle hover:bg-white text-xs font-semibold text-navy-dark transition-all">${escapeHtml(a.label)}</a>`
       )
       .join('');
 
-    verdictBox.className = `verdict verdict--${key}`;
-    verdictBox.innerHTML = `
-      <div class="verdict-icon" aria-hidden="true">
-        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 2 C5 2 2 5 2 10 C2 15 5 18 10 18 C15 18 18 15 18 10 C18 5 15 2 10 2 Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M7 10 L10 13 L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    const verdictBoxEl = document.getElementById('verdict-box');
+    if (!verdictBoxEl) return;
+    verdictBoxEl.className = `verdict verdict--${key}`;
+    verdictBoxEl.innerHTML = `
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-border-subtle pb-6 mb-6">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-lg bg-accent-amber-bg text-accent-amber flex items-center justify-center shrink-0 border border-accent-amber-border">
+            <span class="material-symbols-outlined text-2xl">pause_circle</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-navy-light">Strategic Assessment Recommendation</span>
+            <h2 class="serif-title text-2xl font-semibold text-navy-dark">Verdict: ${escapeHtml(v.name)}</h2>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-canvas border border-border-subtle hover:bg-white text-xs font-semibold text-navy-dark transition-all">
+            <span class="material-symbols-outlined text-[17px]">security_update_warning</span>
+            Download Risk Matrix
+          </button>
+          <div class="flex flex-col gap-1.5">
+            ${actionButtons}
+          </div>
+        </div>
       </div>
-      <div class="verdict-content">
-        <span class="verdict-label">Decision recommendation</span>
-        <h3 class="verdict-name">${escapeHtml(v.name)}</h3>
-        <p class="verdict-explanation">${explanations[key]}</p>
-      </div>
-      <div class="verdict-actions">
-        ${actionButtons}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-navy-muted leading-relaxed">
+        <p class="">${escapeHtml(explanations[key])}</p>
+        <p class="" id="verdict-summary"></p>
       </div>
     `;
   }
@@ -214,19 +250,29 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   function renderBuildBuy() {
     // Badge per option: first row (Build) = IP control, second (Buy) = fastest, third (Hybrid) = recommended
     const badges = ['ip-control', 'fastest', 'recommended'];
-    compareBody.innerHTML = BUILD_BUY_OPTIONS.map(
-      (o, i) => `
-      <tr>
-        <td>
-          <strong>${escapeHtml(o.option)}</strong>
-          <span class="option-badge ${badges[i]}">${badgeLabel(badges[i])}</span>
+    const compareBodyEl = document.getElementById('compare-table').querySelector('tbody');
+    if (!compareBodyEl) return;
+    compareBodyEl.innerHTML = BUILD_BUY_OPTIONS.map((o, i) => `
+      <tr class="${i === 2 ? 'bg-brand-indigo/[0.02] hover:bg-brand-indigo/[0.05]' : 'hover:bg-surface-canvas/30'} transition-colors">
+        <td class="py-4 px-6 align-top">
+          <div class="font-semibold text-navy-dark text-sm">${escapeHtml(o.option)}</div>
+          <div class="text-[11px] text-navy-muted font-mono mt-0.5">${escapeHtml(o.option === 'Build In-House' ? 'Custom AST &amp; PR Parser' : o.option === 'Buy SaaS (existing sharing platform)' ? 'Vanta API + Linters' : 'GitHub Bot + Rules Engine')}</div>
+          <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-semibold ${badgeClasses(i)}">${badgeLabel(badges[i])}</span>
         </td>
-        <td><ul>${o.pros.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul></td>
-        <td><ul>${o.cons.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul></td>
-        <td>${escapeHtml(o.effort)}</td>
+        <td class="py-4 px-6 align-top text-navy-muted leading-relaxed"><ul>${o.pros.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul></td>
+        <td class="py-4 px-6 align-top text-navy-muted leading-relaxed"><ul>${o.cons.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul></td>
+        <td class="py-4 px-6 align-top text-right">
+          <span class="font-bold text-navy-dark text-sm block timeline-value">${escapeHtml(o.effort)}</span>
+          <span class="text-[11px] text-navy-light">Weeks</span>
+        </td>
       </tr>
     `
     ).join('');
+  }
+
+  function badgeClasses(i) {
+    const map = { 0: 'bg-navy-dark/5 text-navy-dark', 1: 'bg-accent-emerald-bg text-accent-emerald', 2: 'bg-brand-indigo text-white' };
+    return map[i] || '';
   }
 
   function badgeLabel(cls) {
@@ -239,7 +285,9 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
   }
 
   function renderRisks(risks) {
-    riskList.innerHTML = risks
+    const riskListEl = document.getElementById('risk-list');
+    if (!riskListEl) return;
+    riskListEl.innerHTML = risks
       .map(
         (r) => `<li class="${r.type}">${escapeHtml(r.text)}</li>`
       )
@@ -256,6 +304,14 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     if (errEl) errEl.hidden = true;
     const secEl = document.getElementById('llm-report');
     if (secEl) secEl.hidden = true;
+    // Reveal AI synthesis card as client-side async feedback
+    const aiCard = document.getElementById('ai-synthesis-card');
+    if (aiCard) aiCard.hidden = false;
+    // Reset AI card progress
+    const aiProgressBar = document.getElementById('ai-progress-bar');
+    const aiProgressPct = document.getElementById('ai-progress-pct');
+    if (aiProgressBar) aiProgressBar.style.width = '0%';
+    if (aiProgressPct) aiProgressPct.textContent = '0%';
     // Hide all individual report sections until populated
     [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection, reportFeasibilitySection].forEach((s) => {
       if (s) s.hidden = true;
@@ -269,6 +325,8 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
 
   function showReportError(message) {
     hideReportLoading();
+    const aiCard = document.getElementById('ai-synthesis-card');
+    if (aiCard) aiCard.hidden = true;
     const errEl = document.getElementById('report-error');
     if (errEl) {
       errEl.hidden = false;
@@ -281,23 +339,32 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
 
   function renderReport(report) {
     const llmReport = document.getElementById('llm-report');
+    const verdictSummary = document.getElementById('verdict-summary');
     if (!llmReport) return;
 
     hideReportLoading();
+
+    // Hide AI synthesis card — synthesis complete
+    const aiCard = document.getElementById('ai-synthesis-card');
+    if (aiCard) aiCard.hidden = true;
+    const aiProgressBar = document.getElementById('ai-progress-bar');
+    const aiProgressPct = document.getElementById('ai-progress-pct');
+    if (aiProgressBar) aiProgressBar.style.width = '100%';
+    if (aiProgressPct) aiProgressPct.textContent = '100%';
+
     llmReport.hidden = false;
 
-    // Show all section wrappers so they can be revealed as content is injected
-    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection, reportFeasibilitySection].forEach((s) => {
+    // Show all section wrappers EXCEPT feasibility (narrative now lives in verdict panel)
+    [reportArchitectureSection, reportImplementationSection, reportCostSection, reportTeamSection, reportRisksSection, reportNextStepsSection].forEach((s) => {
       if (s) s.hidden = false;
     });
+    if (reportFeasibilitySection) reportFeasibilitySection.hidden = true;
 
     // ------------------------------------------------------------------
-    // Feasibility summary — LLM narrative assessment
+    // Feasibility summary — LLM narrative assessment (moved into verdict panel)
     // ------------------------------------------------------------------
-    if (reportFeasibilityBody && report.feasibilitySummary) {
-      reportFeasibilityBody.innerHTML = `
-        <p class="report-feasibility-summary">${escapeHtml(report.feasibilitySummary)}</p>
-      `;
+    if (verdictSummary && report.feasibilitySummary) {
+      verdictSummary.innerHTML = escapeHtml(report.feasibilitySummary);
     }
 
     // ------------------------------------------------------------------
@@ -520,38 +587,35 @@ import { assess, verdictFromScore, generateRisks, escapeHtml, BUILD_BUY_OPTIONS 
     submitBtn.classList.add('btn-loading');
 
     setTimeout(() => {
-      try {
-        const { scores, overall } = assess(idea);
-        const risks = generateRisks(scores);
+      const { scores, overall } = assess(idea);
+      const risks = generateRisks(scores);
 
-        // Store for report retry
-        lastAssessment = { idea, scores, overall };
+      // Store for report retry
+      lastAssessment = { idea, scores, overall };
 
-        renderOverallScore(overall);
-        renderAssessmentIdea(idea);
-        renderScores(scores);
-        renderVerdict(overall);
-        renderBuildBuy();
-        renderRisks(risks);
+      // Render each section independently — one failure must not block the others
+      try { renderOverallScore(overall); } catch (err) { console.error('renderOverallScore error:', err); }
+      try { renderAssessmentIdea(idea); } catch (err) { console.error('renderAssessmentIdea error:', err); }
+      try { renderScores(scores); } catch (err) { console.error('renderScores error:', err); }
+      try { renderVerdict(overall); } catch (err) { console.error('renderVerdict error:', err); }
+      try { renderBuildBuy(); } catch (err) { console.error('renderBuildBuy error:', err); }
+      try { renderRisks(risks); } catch (err) { console.error('renderRisks error:', err); }
 
-        inputSection.classList.add('hidden');
-        resultsSection.classList.remove('hidden');
+      inputSection.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
 
-        // Move focus to the results heading so keyboard and screen-reader
-        // users land in the updated content (focus precedes scroll).
-        resultsHeading.focus({ preventScroll: true });
-        scrollToSection(resultsSection);
+      // Move focus to the results heading so keyboard and screen-reader
+      // users land in the updated content (focus precedes scroll).
+      resultsHeading.focus({ preventScroll: true });
+      scrollToSection(resultsSection);
 
-        submitBtn.disabled = false;
-        submitBtn.querySelector('.btn-label').textContent = 'Assess feasibility';
-        submitBtn.querySelector('.btn-arrow').style.display = 'inline';
-        submitBtn.classList.remove('btn-loading');
+      submitBtn.disabled = false;
+      submitBtn.querySelector('.btn-label').textContent = 'Assess feasibility';
+      submitBtn.querySelector('.btn-arrow').style.display = 'inline';
+      submitBtn.classList.remove('btn-loading');
 
-        // Kick off async LLM report after deterministic results are shown
-        fetchLLMReport(idea, scores, overall);
-      } catch (err) {
-        console.error('SetTimeout callback error:', err);
-      }
+      // Kick off async LLM report after deterministic results are shown
+      fetchLLMReport(idea, scores, overall);
     }, 120);
   });
 
